@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HR Attrition Analytics & Prediction System</title>
+  <!-- Bootstrap 5 CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet" />
+  <!-- Custom CSS -->
+  <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet" />
+</head>
+<body>
+
+<!-- ── Navigation Bar ───────────────────────────────────────── -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
+  <div class="container">
+    <a class="navbar-brand fw-bold fs-5" href="/">
+      <i class="bi bi-people-fill me-2"></i>HR Attrition System
+    </a>
+    <div class="ms-auto">
+      <a href="/analytics" class="btn btn-outline-light btn-sm">
+        <i class="bi bi-bar-chart-line me-1"></i>Analytics Dashboard
+      </a>
+    </div>
+  </div>
+</nav>
+
+<!-- ── Hero Header ──────────────────────────────────────────── -->
+<div class="hero-banner py-5 text-white text-center">
+  <div class="container">
+    <h1 class="display-5 fw-bold mb-2">
+      <i class="bi bi-graph-up-arrow me-2"></i>HR Attrition Prediction
+    </h1>
+    <p class="lead mb-1">
+      Predict employee attrition using Machine Learning (Random Forest)
+    </p>
+    <p class="text-white-50 small">
+      IBM HR Analytics Dataset &nbsp;|&nbsp; Python + Flask + Scikit-learn
+    </p>
+  </div>
+</div>
+
+<!-- ── Main Content ─────────────────────────────────────────── -->
+<div class="container my-5">
+
+  <!-- Validation Errors -->
+  {% if errors %}
+  <div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <strong><i class="bi bi-exclamation-triangle me-1"></i>Please fix the following errors:</strong>
+    <ul class="mb-0 mt-2">
+      {% for err in errors %}
+      <li>{{ err }}</li>
+      {% endfor %}
+    </ul>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+  {% endif %}
+
+  <!-- ── Quick Info Cards ─────────────────────────────────── -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-4">
+      <div class="card info-card border-0 shadow-sm h-100">
+        <div class="card-body text-center py-4">
+          <i class="bi bi-robot fs-2 text-primary mb-2 d-block"></i>
+          <h6 class="fw-bold">ML-Powered</h6>
+          <p class="text-muted small mb-0">Random Forest Classifier trained on IBM HR data</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card info-card border-0 shadow-sm h-100">
+        <div class="card-body text-center py-4">
+          <i class="bi bi-shield-check fs-2 text-success mb-2 d-block"></i>
+          <h6 class="fw-bold">Actionable Insights</h6>
+          <p class="text-muted small mb-0">Get confidence scores and risk-level explanations</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card info-card border-0 shadow-sm h-100">
+        <div class="card-body text-center py-4">
+          <i class="bi bi-speedometer2 fs-2 text-warning mb-2 d-block"></i>
+          <h6 class="fw-bold">Instant Results</h6>
+          <p class="text-muted small mb-0">Sub-second prediction with probability score</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Prediction Form ──────────────────────────────────── -->
+  <div class="card shadow border-0 rounded-4">
+    <div class="card-header bg-primary text-white py-3 rounded-top-4">
+      <h5 class="mb-0"><i class="bi bi-person-vcard me-2"></i>Employee Profile — Attrition Prediction</h5>
+    </div>
+    <div class="card-body p-4">
+      <form action="/predict" method="POST" novalidate>
+
+        <!-- Section 1: Personal Info -->
+        <h6 class="text-primary fw-bold border-bottom pb-2 mb-3">
+          <i class="bi bi-person me-1"></i>Personal Information
+        </h6>
+        <div class="row g-3 mb-4">
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Age <span class="text-danger">*</span></label>
+            <input type="number" name="Age" class="form-control"
+                   value="{{ form_data.Age if form_data else 32 }}"
+                   min="18" max="65" required placeholder="18–65" />
+            <div class="form-text">Employee's current age</div>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Gender <span class="text-danger">*</span></label>
+            <select name="Gender" class="form-select">
+              <option value="Male"   {% if form_data and form_data.Gender == 'Male' %}selected{% endif %}>Male</option>
+              <option value="Female" {% if form_data and form_data.Gender == 'Female' %}selected{% endif %}>Female</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Marital Status <span class="text-danger">*</span></label>
+            <select name="MaritalStatus" class="form-select">
+              <option value="Single"   {% if form_data and form_data.MaritalStatus == 'Single' %}selected{% endif %}>Single</option>
+              <option value="Married"  {% if form_data and form_data.MaritalStatus == 'Married' %}selected{% endif %}>Married</option>
+              <option value="Divorced" {% if form_data and form_data.MaritalStatus == 'Divorced' %}selected{% endif %}>Divorced</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Section 2: Job Info -->
+        <h6 class="text-primary fw-bold border-bottom pb-2 mb-3">
+          <i class="bi bi-briefcase me-1"></i>Job Details
+        </h6>
+        <div class="row g-3 mb-4">
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Department <span class="text-danger">*</span></label>
+            <select name="Department" class="form-select">
+              <option value="Sales">Sales</option>
+              <option value="Research & Development">Research & Development</option>
+              <option value="Human Resources">Human Resources</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Job Role <span class="text-danger">*</span></label>
+            <select name="JobRole" class="form-select">
+              <option value="Sales Executive">Sales Executive</option>
+              <option value="Research Scientist">Research Scientist</option>
+              <option value="Laboratory Technician">Laboratory Technician</option>
+              <option value="Manufacturing Director">Manufacturing Director</option>
+              <option value="Healthcare Representative">Healthcare Representative</option>
+              <option value="Manager">Manager</option>
+              <option value="Sales Representative">Sales Representative</option>
+              <option value="Research Director">Research Director</option>
+              <option value="Human Resources">Human Resources</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Education Field <span class="text-danger">*</span></label>
+            <select name="EducationField" class="form-select">
+              <option value="Life Sciences">Life Sciences</option>
+              <option value="Medical">Medical</option>
+              <option value="Marketing">Marketing</option>
+              <option value="Technical Degree">Technical Degree</option>
+              <option value="Human Resources">Human Resources</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Section 3: Compensation & Work -->
+        <h6 class="text-primary fw-bold border-bottom pb-2 mb-3">
+          <i class="bi bi-currency-dollar me-1"></i>Compensation & Work Style
+        </h6>
+        <div class="row g-3 mb-4">
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Monthly Income (₹ / $) <span class="text-danger">*</span></label>
+            <input type="number" name="MonthlyIncome" class="form-control"
+                   value="{{ form_data.MonthlyIncome if form_data else 5000 }}"
+                   min="1000" max="100000" required placeholder="e.g. 5000" />
+            <div class="form-text">In same currency as your dataset</div>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Overtime <span class="text-danger">*</span></label>
+            <select name="OverTime" class="form-select">
+              <option value="Yes" {% if form_data and form_data.OverTime == 'Yes' %}selected{% endif %}>Yes</option>
+              <option value="No"  {% if form_data and form_data.OverTime == 'No'  %}selected{% endif %}>No</option>
+            </select>
+            <div class="form-text">Does employee regularly work overtime?</div>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Business Travel <span class="text-danger">*</span></label>
+            <select name="BusinessTravel" class="form-select">
+              <option value="Travel_Rarely">Travel Rarely</option>
+              <option value="Travel_Frequently">Travel Frequently</option>
+              <option value="Non-Travel">Non-Travel</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Section 4: Satisfaction Ratings -->
+        <h6 class="text-primary fw-bold border-bottom pb-2 mb-3">
+          <i class="bi bi-emoji-smile me-1"></i>Satisfaction & Well-being
+          <small class="text-muted fw-normal">(Scale: 1 = Very Low &nbsp;→&nbsp; 4 = Very High)</small>
+        </h6>
+        <div class="row g-3 mb-4">
+          <div class="col-md-3">
+            <label class="form-label fw-semibold">Job Satisfaction</label>
+            <select name="JobSatisfaction" class="form-select">
+              <option value="1">1 — Very Low</option>
+              <option value="2">2 — Low</option>
+              <option value="3" selected>3 — Medium</option>
+              <option value="4">4 — High</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label fw-semibold">Work-Life Balance</label>
+            <select name="WorkLifeBalance" class="form-select">
+              <option value="1">1 — Bad</option>
+              <option value="2">2 — Good</option>
+              <option value="3" selected>3 — Better</option>
+              <option value="4">4 — Best</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label fw-semibold">Environment Satisfaction</label>
+            <select name="EnvironmentSatisfaction" class="form-select">
+              <option value="1">1 — Very Low</option>
+              <option value="2">2 — Low</option>
+              <option value="3" selected>3 — Medium</option>
+              <option value="4">4 — High</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label fw-semibold">Distance from Home (km)</label>
+            <input type="number" name="DistanceFromHome" class="form-control"
+                   value="{{ form_data.DistanceFromHome if form_data else 5 }}"
+                   min="1" max="29" placeholder="1–29" />
+          </div>
+        </div>
+
+        <!-- Section 5: Tenure -->
+        <h6 class="text-primary fw-bold border-bottom pb-2 mb-3">
+          <i class="bi bi-calendar3 me-1"></i>Tenure & Experience
+        </h6>
+        <div class="row g-3 mb-4">
+          <div class="col-md-3">
+            <label class="form-label fw-semibold">Years at Company</label>
+            <input type="number" name="YearsAtCompany" class="form-control"
+                   value="{{ form_data.YearsAtCompany if form_data else 3 }}"
+                   min="0" max="40" />
+          </div>
+          <div class="col-md-3">
+            <label class="form-label fw-semibold">Total Working Years</label>
+            <input type="number" name="TotalWorkingYears" class="form-control"
+                   value="{{ form_data.TotalWorkingYears if form_data else 8 }}"
+                   min="0" max="40" />
+          </div>
+          <div class="col-md-3">
+            <label class="form-label fw-semibold">Years in Current Role</label>
+            <input type="number" name="YearsInCurrentRole" class="form-control"
+                   value="{{ form_data.YearsInCurrentRole if form_data else 2 }}"
+                   min="0" max="18" />
+          </div>
+          <div class="col-md-3">
+            <label class="form-label fw-semibold">Num. Companies Worked</label>
+            <input type="number" name="NumCompaniesWorked" class="form-control"
+                   value="{{ form_data.NumCompaniesWorked if form_data else 2 }}"
+                   min="0" max="9" />
+          </div>
+          <div class="col-md-3">
+            <label class="form-label fw-semibold">Years Since Last Promotion</label>
+            <input type="number" name="YearsSinceLastPromotion" class="form-control"
+                   value="{{ form_data.YearsSinceLastPromotion if form_data else 1 }}"
+                   min="0" max="15" />
+          </div>
+          <div class="col-md-3">
+            <label class="form-label fw-semibold">Years with Current Manager</label>
+            <input type="number" name="YearsWithCurrManager" class="form-control"
+                   value="{{ form_data.YearsWithCurrManager if form_data else 3 }}"
+                   min="0" max="17" />
+          </div>
+          <div class="col-md-3">
+            <label class="form-label fw-semibold">% Salary Hike (last year)</label>
+            <input type="number" name="PercentSalaryHike" class="form-control"
+                   value="{{ form_data.PercentSalaryHike if form_data else 14 }}"
+                   min="11" max="25" />
+          </div>
+          <div class="col-md-3">
+            <label class="form-label fw-semibold">Training Times Last Year</label>
+            <input type="number" name="TrainingTimesLastYear" class="form-control"
+                   value="{{ form_data.TrainingTimesLastYear if form_data else 3 }}"
+                   min="0" max="6" />
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="text-center mt-4">
+          <button type="submit" class="btn btn-primary btn-lg px-5 py-2 rounded-pill shadow">
+            <i class="bi bi-magic me-2"></i>Predict Attrition
+          </button>
+          <a href="/" class="btn btn-outline-secondary btn-lg px-4 py-2 ms-2 rounded-pill">
+            <i class="bi bi-arrow-counterclockwise me-1"></i>Reset
+          </a>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+  <!-- Footer note -->
+  <p class="text-center text-muted small mt-4">
+    Built with Python · Flask · Scikit-learn &nbsp;|&nbsp; IBM HR Analytics Dataset
+    &nbsp;|&nbsp; <a href="/analytics" class="text-decoration-none">View Analytics Dashboard →</a>
+  </p>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

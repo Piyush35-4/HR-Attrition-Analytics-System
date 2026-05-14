@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Prediction Result — HR Attrition System</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet" />
+  <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet" />
+</head>
+<body>
+
+<!-- ── Navigation ──────────────────────────────────────────── -->
+<nav class="navbar navbar-dark bg-primary shadow-sm">
+  <div class="container">
+    <a class="navbar-brand fw-bold" href="/">
+      <i class="bi bi-people-fill me-2"></i>HR Attrition System
+    </a>
+    <a href="/analytics" class="btn btn-outline-light btn-sm">
+      <i class="bi bi-bar-chart-line me-1"></i>Analytics
+    </a>
+  </div>
+</nav>
+
+<div class="container my-5">
+
+  <!-- ── Result Card ─────────────────────────────────────── -->
+  <div class="row justify-content-center">
+    <div class="col-lg-7">
+
+      <!-- Main result banner -->
+      {% if result.prediction == 'Yes' %}
+      <div class="result-card result-leave text-center shadow-lg rounded-4 p-5 mb-4">
+        <div class="result-icon mb-3">
+          <i class="bi bi-exclamation-triangle-fill fs-1 text-warning"></i>
+        </div>
+        <h2 class="fw-bold text-danger mb-2">⚠ Likely to Leave</h2>
+        <p class="lead text-dark mb-3">This employee shows signs of attrition risk.</p>
+
+        <!-- Confidence Badge -->
+        <div class="d-inline-flex align-items-center bg-white rounded-pill px-4 py-2 shadow-sm mb-3">
+          <i class="bi bi-speedometer2 me-2 text-primary fs-5"></i>
+          <span class="fw-bold fs-5 me-1">{{ result.confidence }}%</span>
+          <span class="text-muted">model confidence</span>
+        </div>
+
+        <!-- Risk Level -->
+        <div class="mt-3">
+          {% if result.risk_level == 'High' %}
+          <span class="badge bg-danger fs-6 px-4 py-2 rounded-pill">
+            <i class="bi bi-fire me-1"></i>HIGH RISK
+          </span>
+          {% elif result.risk_level == 'Medium' %}
+          <span class="badge bg-warning text-dark fs-6 px-4 py-2 rounded-pill">
+            <i class="bi bi-exclamation-circle me-1"></i>MEDIUM RISK
+          </span>
+          {% else %}
+          <span class="badge bg-info text-dark fs-6 px-4 py-2 rounded-pill">
+            <i class="bi bi-info-circle me-1"></i>LOW RISK
+          </span>
+          {% endif %}
+        </div>
+      </div>
+
+      {% else %}
+      <div class="result-card result-stay text-center shadow-lg rounded-4 p-5 mb-4">
+        <div class="result-icon mb-3">
+          <i class="bi bi-check-circle-fill fs-1 text-success"></i>
+        </div>
+        <h2 class="fw-bold text-success mb-2">✓ Not Likely to Leave</h2>
+        <p class="lead text-dark mb-3">This employee appears satisfied and stable.</p>
+
+        <!-- Confidence Badge -->
+        <div class="d-inline-flex align-items-center bg-white rounded-pill px-4 py-2 shadow-sm mb-3">
+          <i class="bi bi-speedometer2 me-2 text-primary fs-5"></i>
+          <span class="fw-bold fs-5 me-1">{{ result.confidence }}%</span>
+          <span class="text-muted">model confidence</span>
+        </div>
+
+        <div class="mt-3">
+          <span class="badge bg-success fs-6 px-4 py-2 rounded-pill">
+            <i class="bi bi-shield-check me-1"></i>LOW RISK
+          </span>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- ── Probability Meter ──────────────────────────── -->
+      <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-body p-4">
+          <h6 class="fw-bold text-muted mb-3">
+            <i class="bi bi-bar-chart-fill me-1 text-primary"></i>
+            Attrition Probability Breakdown
+          </h6>
+          <div class="mb-2 d-flex justify-content-between">
+            <span class="small fw-semibold text-success">Will Stay</span>
+            <span class="small fw-semibold text-danger">Will Leave</span>
+          </div>
+          <div class="progress" style="height: 22px; border-radius: 12px;">
+            <div class="progress-bar bg-success"
+                 style="width: {{ 100 - result.leave_probability }}%; border-radius: 12px 0 0 12px;">
+              {{ (100 - result.leave_probability) | round(1) }}%
+            </div>
+            <div class="progress-bar bg-danger"
+                 style="width: {{ result.leave_probability }}%; border-radius: 0 12px 12px 0;">
+              {{ result.leave_probability }}%
+            </div>
+          </div>
+          <div class="text-center mt-2">
+            <small class="text-muted">
+              Probability of Attrition: <strong class="text-danger">{{ result.leave_probability }}%</strong>
+            </small>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Explanation ──────────────────────────────── -->
+      <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-body p-4">
+          <h6 class="fw-bold mb-2">
+            <i class="bi bi-chat-text me-1 text-primary"></i>Model Explanation
+          </h6>
+          <p class="text-muted mb-0">{{ result.explanation }}</p>
+        </div>
+      </div>
+
+      <!-- ── Input Summary ─────────────────────────────── -->
+      <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-header bg-light rounded-top-4 py-3">
+          <h6 class="fw-bold mb-0">
+            <i class="bi bi-list-check me-1 text-primary"></i>Input Summary
+          </h6>
+        </div>
+        <div class="card-body p-0">
+          <table class="table table-sm table-hover mb-0">
+            <tbody>
+              <tr>
+                <td class="text-muted ps-3">Age</td>
+                <td class="fw-semibold">{{ input_data.Age }}</td>
+                <td class="text-muted">Department</td>
+                <td class="fw-semibold">{{ input_data.Department }}</td>
+              </tr>
+              <tr>
+                <td class="text-muted ps-3">Monthly Income</td>
+                <td class="fw-semibold">{{ input_data.MonthlyIncome | int }}</td>
+                <td class="text-muted">Overtime</td>
+                <td class="fw-semibold">
+                  {% if input_data.OverTime == 'Yes' or input_data.OverTime == 1 %}
+                    <span class="badge bg-danger-subtle text-danger">Yes</span>
+                  {% else %}
+                    <span class="badge bg-success-subtle text-success">No</span>
+                  {% endif %}
+                </td>
+              </tr>
+              <tr>
+                <td class="text-muted ps-3">Job Satisfaction</td>
+                <td class="fw-semibold">{{ input_data.JobSatisfaction }} / 4</td>
+                <td class="text-muted">Work-Life Balance</td>
+                <td class="fw-semibold">{{ input_data.WorkLifeBalance }} / 4</td>
+              </tr>
+              <tr>
+                <td class="text-muted ps-3">Years at Company</td>
+                <td class="fw-semibold">{{ input_data.YearsAtCompany }}</td>
+                <td class="text-muted">Environment Satisfaction</td>
+                <td class="fw-semibold">{{ input_data.EnvironmentSatisfaction }} / 4</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── Action Buttons ─────────────────────────────── -->
+      <div class="text-center">
+        <a href="/" class="btn btn-primary btn-lg px-5 me-2 rounded-pill">
+          <i class="bi bi-arrow-left me-1"></i>New Prediction
+        </a>
+        <a href="/analytics" class="btn btn-outline-primary btn-lg px-4 rounded-pill">
+          <i class="bi bi-bar-chart-line me-1"></i>View Analytics
+        </a>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
