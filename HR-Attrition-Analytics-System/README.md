@@ -101,7 +101,7 @@ HR-Attrition-Analytics-System/
 ### 1. Clone / Download the project
 
 ```bash
-git clone https://github.com/your-username/HR-Attrition-Analytics-System.git
+git clone https://github.com/Piyush35-4/HR-Attrition-Analytics-System.git
 cd HR-Attrition-Analytics-System
 ```
 
@@ -121,7 +121,7 @@ venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### 4. (Optional) Use the real Kaggle dataset
+### 4. Use the real Kaggle dataset
 
 Download the dataset from Kaggle:  
 [IBM HR Analytics Employee Attrition & Performance](https://www.kaggle.com/datasets/pavansubhasht/ibm-hr-analytics-attrition-dataset)
